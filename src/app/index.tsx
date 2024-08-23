@@ -9,13 +9,19 @@ export default function Index() {
       <WebView
         style={styles.container}
         source={{ uri: 'https://app.smartimobiliario.com.br/atendimento/negocios' }}
+        /*
         onMessage={() => {}}
         ref={() => {}}
+        */
+        javaScriptEnabled={true}
         setSupportMultipleWindows={false}
         startInLoadingState={true}
         mediaPlaybackRequiresUserAction={false}
         allowFileAccess={true}
+        allowFileAccessFromFileURLs={true}
+        allowUniversalAccessFromFileURLs={true}
         domStorageEnabled={true}
+        allowsBackForwardNavigationGestures
         useWebKit={true}
         cacheEnabled={true}
         sharedCookiesEnabled={true}
@@ -27,7 +33,8 @@ export default function Index() {
         scalesPageToFit={false}
         userAgent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
         cacheMode="LOAD_CACHE_ELSE_NETWORK"
-        mixedContentMode="compatibility"
+        originWhitelist={['*']}
+        mixedContentMode="always"
         incognito={false}
         geolocationEnabled={true}
       />
