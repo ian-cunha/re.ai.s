@@ -8,6 +8,7 @@ export default function RootLayout() {
         headerShown: false,
       }}>
       <Stack.Screen
+        options={{ contentStyle: { backgroundColor: "#F46001", } }}
         name="index"
       />
     </Stack>
