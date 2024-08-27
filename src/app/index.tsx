@@ -5,31 +5,32 @@ import React, { useState } from 'react';
 
 export default function Index() {
 
-  const[uri, seturi] = useState('https://app.smartimobiliario.com.br/atendimento/negocios')
+  const [uri, seturi] = useState('https://app.smartimobiliario.com.br/inicio/dashboard')
 
   return (
     <WebView
       style={styles.container}
-      source={{ uri }}
       onShouldStartLoadWithRequest={
         request => {
           if (request.url.includes('https')) {
-              seturi(request.url);
-              return false;
+            seturi(request.url);
+            return false;
           } else return true;
-         }
+        }
       }
+      source={{ uri }}
+      allowingReadAccessToURL={uri}
       /*
       onMessage={() => {}}
       ref={() => {}}
       */
       javaScriptEnabled={true}
       setSupportMultipleWindows={false}
-      startInLoadingState={true}
       mediaPlaybackRequiresUserAction={false}
       allowFileAccess={true}
       allowFileAccessFromFileURLs={true}
       allowUniversalAccessFromFileURLs={true}
+      javaScriptCanOpenWindowsAutomatically={true}
       domStorageEnabled={true}
       allowsBackForwardNavigationGestures
       useWebKit={true}
