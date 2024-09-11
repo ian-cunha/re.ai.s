@@ -2,10 +2,10 @@
   "expo": {
     "name": "Smart Imobiliário",
     "slug": "smart-imobiliario",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "br.com.youdigital.smartimobiliario",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
@@ -14,14 +14,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.realestateaiplanner.smartimobiliario"
+      "bundleIdentifier": "br.com.youdigital.smartimobiliario"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.realestateaiplanner.smartimobiliario"
+      "package": "br.com.youdigital.smartimobiliario"
     },
     "web": {
       "bundler": "metro",
