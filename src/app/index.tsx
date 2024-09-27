@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, BackHandler } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
@@ -10,6 +10,8 @@ const Index: React.FC = () => {
   const [stayLoggedIn, setStayLoggedIn] = useState<boolean>(false);
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
+
+  const webViewRef = useRef<WebView | null>(null);
 
   const loginUrl = 'https://app.smartimobiliario.com.br/';
   const logoutUrl = 'https://app.smartimobiliario.com.br/usuario/logout';
@@ -57,6 +59,23 @@ const Index: React.FC = () => {
       handleLogout();
     }
   };
+
+  useEffect(() => {
+    const backAction = () => {
+      if (webViewRef.current) {
+        webViewRef.current.goBack();
+        return true; // impede o fechamento do aplicativo
+      }
+      return false; // permite o fechamento se não houver histórico no WebView
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -111,33 +130,40 @@ const Index: React.FC = () => {
           </TouchableOpacity>
         </View>
       ) : (
-        <WebView
-          source={{ uri: loginUrl }}
-          injectedJavaScript={injectJS}
-          javaScriptEnabled={true}
-          onNavigationStateChange={handleNavigationChange}
-          onMessage={(event) => console.log('Mensagem da WebView:', event.nativeEvent.data)}
-
-          setSupportMultipleWindows={false}
-          mediaPlaybackRequiresUserAction={false}
-          allowFileAccess={true}
-          allowFileAccessFromFileURLs={true}
-          allowUniversalAccessFromFileURLs={true}
-          javaScriptCanOpenWindowsAutomatically={true}
-          domStorageEnabled={true}
-          allowsBackForwardNavigationGestures
-          useWebKit={true}
-          cacheEnabled={true}
-          sharedCookiesEnabled={true}
-          thirdPartyCookiesEnabled={true}
-          pullToRefreshEnabled={true}
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
-          mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
-          scalesPageToFit={false}
-          mixedContentMode="always"
-          geolocationEnabled={true}
-        />
+        <>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutButtonText}>Sair</Text>
+          </TouchableOpacity>
+          <WebView
+            source={{ uri: loginUrl }}
+            ref={webViewRef}
+            onLoadEnd={() => {
+              if (loggedIn && webViewRef.current) {
+                webViewRef.current.injectJavaScript(injectJS);
+              }
+            }}
+            onNavigationStateChange={handleNavigationChange}
+            javaScriptEnabled={true}
+            setSupportMultipleWindows={false}
+            mediaPlaybackRequiresUserAction={false}
+            allowFileAccess={true}
+            allowFileAccessFromFileURLs={true}
+            allowUniversalAccessFromFileURLs={true}
+            javaScriptCanOpenWindowsAutomatically={true}
+            domStorageEnabled={true}
+            allowsBackForwardNavigationGestures
+            cacheEnabled={true}
+            sharedCookiesEnabled={true}
+            thirdPartyCookiesEnabled={true}
+            pullToRefreshEnabled={true}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
+            scalesPageToFit={false}
+            mixedContentMode="always"
+            geolocationEnabled={true}
+          />
+        </>
       )}
     </View>
   );
@@ -240,6 +266,17 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: '#fff',
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    backgroundColor: '#fa581a',
+    padding: 10,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });
