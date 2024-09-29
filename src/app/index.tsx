@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, BackHandler, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, BackHandler, Platform, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
@@ -11,10 +11,9 @@ const Index: React.FC = () => {
   const [logado, setLogado] = useState<boolean>(false);
   const [senhaVisivel, setSenhaVisivel] = useState<boolean>(false);
   const [urlWebView, setUrlWebView] = useState<string | null>(null);
-
   const webViewRef = useRef<WebView | null>(null);
 
-  const urlRedirect = 'https://app.smartimobiliario.com.br/inicio/dashboard?origem=login';
+  const urlRedirect = 'https://app.smartimobiliario.com.br/inicio/dashboard';
   const urlLogin = 'https://app.smartimobiliario.com.br/usuario/loginSmart';
   const urlLogout = 'https://app.smartimobiliario.com.br/usuario/logout';
 
@@ -29,61 +28,44 @@ const Index: React.FC = () => {
         setUrlWebView(urlLogin);
       }
     };
-
     verificarLogado();
   }, []);
 
   const handleLogin = async () => {
     const tipoDispositivo = Platform.OS === 'ios' ? 'iphone' : 'android';
-
     const body = new URLSearchParams({
       'usuario.email': email,
       'usuario.senha': senha,
-      urlRedirect: urlRedirect,
-      tipoDispositivo: tipoDispositivo,
-      tokenNotificacao: '',
+      'urlRedirect': urlRedirect,
+      'tipoDispositivo': tipoDispositivo,
     }).toString();
 
     try {
       const resposta = await fetch(urlLogin, {
         method: 'POST',
+        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: body,
       });
 
-      if (!resposta.ok) {
-        const errorText = await resposta.text();
-        console.error('Erro na requisição:', errorText);
-        alert('Erro na requisição. Verifique os dados e tente novamente.');
-        return;
-      }
+      if (resposta.ok) {
+        setLogado(true);
+        setUrlWebView(urlRedirect);
 
-      const dados = await resposta.json();
-      console.log('Status da resposta do login:', resposta.status);
-      console.log('Dados da resposta do login:', dados);
-
-      if (dados.success) {
         if (manterLogado) {
           await AsyncStorage.setItem('email', email);
           await AsyncStorage.setItem('senha', senha);
-        } else {
-          await AsyncStorage.removeItem('email');
-          await AsyncStorage.removeItem('senha');
         }
-        setLogado(true);
-        setUrlWebView(urlLogin);
       } else {
-        console.log('Login falhou:', dados.message || 'Verifique suas credenciais.');
-        alert('Login falhou: ' + (dados.message || 'Verifique suas credenciais.'));
+        Alert.alert('Login falhou', 'Verifique suas credenciais.');
       }
     } catch (error) {
       console.error('Ocorreu um erro durante o login:', error);
-      alert('Ocorreu um erro. Tente novamente.');
+      Alert.alert('Ocorreu um erro', 'Tente novamente.');
     }
   };
-
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('email');
@@ -109,11 +91,7 @@ const Index: React.FC = () => {
       return false;
     };
 
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction
-    );
-
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
     return () => backHandler.remove();
   }, []);
 
@@ -121,7 +99,7 @@ const Index: React.FC = () => {
     <View style={styles.container}>
       {!logado ? (
         <View style={styles.loginContainer}>
-          <Text style={styles.title}>Smart Imobiliário</Text>
+          <Text style={styles.title}>SMART IMOBILIÁRIO</Text>
           <Text style={styles.subtitle}>Faça login na sua conta</Text>
 
           <TextInput
@@ -171,9 +149,6 @@ const Index: React.FC = () => {
         </View>
       ) : (
         <>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutButtonText}>Sair</Text>
-          </TouchableOpacity>
           {urlWebView && (
             <WebView
               source={{ uri: urlWebView }}
@@ -207,7 +182,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#fa581a',
     textAlign: 'center',
     marginBottom: 10,
   },
@@ -291,17 +266,6 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
-  },
-  logoutButton: {
-    backgroundColor: '#fa581a',
-    padding: 10,
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontSize: 16,
     fontWeight: 'bold',
   },
 });
