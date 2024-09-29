@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, BackHandler, Platform, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, BackHandler, Platform, Alert, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
@@ -11,6 +11,7 @@ const Index: React.FC = () => {
   const [logado, setLogado] = useState<boolean>(false);
   const [senhaVisivel, setSenhaVisivel] = useState<boolean>(false);
   const [urlWebView, setUrlWebView] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const webViewRef = useRef<WebView | null>(null);
 
   const urlRedirect = 'https://app.smartimobiliario.com.br/inicio/dashboard';
@@ -24,18 +25,19 @@ const Index: React.FC = () => {
       if (emailArmazenado && senhaArmazenada) {
         setEmail(emailArmazenado);
         setSenha(senhaArmazenada);
-        setLogado(true);
-        setUrlWebView(urlLogin);
+        setManterLogado(true);
+        await handleLogin(emailArmazenado, senhaArmazenada);
       }
     };
     verificarLogado();
   }, []);
 
-  const handleLogin = async () => {
+  const handleLogin = async (emailParam: string = email, senhaParam: string = senha) => {
+    setLoading(true);
     const tipoDispositivo = Platform.OS === 'ios' ? 'iphone' : 'android';
     const body = new URLSearchParams({
-      'usuario.email': email,
-      'usuario.senha': senha,
+      'usuario.email': emailParam,
+      'usuario.senha': senhaParam,
       'urlRedirect': urlRedirect,
       'tipoDispositivo': tipoDispositivo,
     }).toString();
@@ -55,8 +57,8 @@ const Index: React.FC = () => {
         setUrlWebView(urlRedirect);
 
         if (manterLogado) {
-          await AsyncStorage.setItem('email', email);
-          await AsyncStorage.setItem('senha', senha);
+          await AsyncStorage.setItem('email', emailParam);
+          await AsyncStorage.setItem('senha', senhaParam);
         }
       } else {
         Alert.alert('Login falhou', 'Verifique suas credenciais.');
@@ -64,6 +66,8 @@ const Index: React.FC = () => {
     } catch (error) {
       console.error('Ocorreu um erro durante o login:', error);
       Alert.alert('Ocorreu um erro', 'Tente novamente.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -143,8 +147,16 @@ const Index: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Entrar</Text>
+          <TouchableOpacity style={styles.loginButton} onPress={() => handleLogin()} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.loginButtonText}>Entrar</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.forgotPasswordContainer} onPress={() => Alert.alert('Recuperação de Senha', 'Link para recuperação de senha')}>
+            <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -267,6 +279,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  forgotPasswordContainer: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  forgotPasswordText: {
+    color: '#fa581a',
+    textDecorationLine: 'underline',
   },
 });
 
