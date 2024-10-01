@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, BackHandler, Platf
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
+import Recovery from './recovery';
 
 const Index: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -12,6 +13,7 @@ const Index: React.FC = () => {
   const [senhaVisivel, setSenhaVisivel] = useState<boolean>(false);
   const [urlWebView, setUrlWebView] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [showRecovery, setShowRecovery] = useState<boolean>(false);
   const webViewRef = useRef<WebView | null>(null);
 
   const urlRedirect = 'https://app.smartimobiliario.com.br/inicio/dashboard';
@@ -102,63 +104,70 @@ const Index: React.FC = () => {
   return (
     <View style={styles.container}>
       {!logado ? (
-        <View style={styles.loginContainer}>
-          <Text style={styles.title}>SMART IMOBILIÁRIO</Text>
-          <Text style={styles.subtitle}>Faça login na sua conta</Text>
+        showRecovery ? (
+          <Recovery onBack={() => setShowRecovery(false)} />
+        ) : (
+          <View style={styles.loginContainer}>
+            <Text style={styles.title}>SMART IMOBILIÁRIO</Text>
+            <Text style={styles.subtitle}>Faça login na sua conta</Text>
 
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Digite seu email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            placeholderTextColor="#bbb"
-          />
-
-          <View style={styles.passwordContainer}>
             <TextInput
-              style={styles.inputPassword}
-              value={senha}
-              onChangeText={setSenha}
-              placeholder="Digite sua senha"
-              secureTextEntry={!senhaVisivel}
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Digite seu email"
+              keyboardType="email-address"
+              autoCapitalize="none"
               placeholderTextColor="#bbb"
             />
+
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.inputPassword}
+                value={senha}
+                onChangeText={setSenha}
+                placeholder="Digite sua senha"
+                secureTextEntry={!senhaVisivel}
+                placeholderTextColor="#bbb"
+              />
+              <TouchableOpacity
+                style={styles.toggleButton}
+                onPress={() => setSenhaVisivel(!senhaVisivel)}
+              >
+                <Text style={styles.toggleText}>
+                  {senhaVisivel ? 'Ocultar' : 'Mostrar'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.stayLoggedInContainer}>
+              <TouchableOpacity
+                style={styles.checkboxContainer}
+                onPress={() => setManterLogado(!manterLogado)}
+              >
+                <View style={[styles.checkbox, manterLogado && styles.checked]}>
+                  {manterLogado && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <Text style={styles.stayLoggedInText}>Permanecer logado</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity style={styles.loginButton} onPress={() => handleLogin()} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.loginButtonText}>Entrar</Text>
+              )}
+            </TouchableOpacity>
+
             <TouchableOpacity
-              style={styles.toggleButton}
-              onPress={() => setSenhaVisivel(!senhaVisivel)}
+              style={styles.forgotPasswordContainer}
+              onPress={() => setShowRecovery(true)}
             >
-              <Text style={styles.toggleText}>
-                {senhaVisivel ? 'Ocultar' : 'Mostrar'}
-              </Text>
+              <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
           </View>
-
-          <View style={styles.stayLoggedInContainer}>
-            <TouchableOpacity
-              style={styles.checkboxContainer}
-              onPress={() => setManterLogado(!manterLogado)}
-            >
-              <View style={[styles.checkbox, manterLogado && styles.checked]}>
-                {manterLogado && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <Text style={styles.stayLoggedInText}>Permanecer logado</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.loginButton} onPress={() => handleLogin()} disabled={loading}>
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.loginButtonText}>Entrar</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.forgotPasswordContainer} onPress={() => Alert.alert('Recuperação de Senha', 'Link para recuperação de senha')}>
-            <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
-          </TouchableOpacity>
-        </View>
+        )
       ) : (
         <>
           {urlWebView && (
