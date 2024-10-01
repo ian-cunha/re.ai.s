@@ -173,6 +173,10 @@ const Index: React.FC = () => {
               pullToRefreshEnabled={true}
               showsHorizontalScrollIndicator={false}
               showsVerticalScrollIndicator={false}
+              setSupportMultipleWindows={false}
+              allowFileAccess={true}
+              allowFileAccessFromFileURLs={true}
+              allowUniversalAccessFromFileURLs={true}
             />
           )}
         </>
