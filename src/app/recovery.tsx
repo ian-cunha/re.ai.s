@@ -9,9 +9,9 @@ const Recovery: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     setLoading(true);
 
     const body = new URLSearchParams({
-        'email': email
-      }).toString();
-    
+      'email': email
+    }).toString();
+
     try {
       const response = await fetch('https://app.smartimobiliario.com.br/sistema/recuperarSenha', {
         method: 'POST',
