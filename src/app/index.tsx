@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, BackHandler, Platform, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, BackHandler, Platform, Alert, ActivityIndicator, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
@@ -63,7 +63,7 @@ const Index: React.FC = () => {
           await AsyncStorage.setItem('senha', senhaParam);
         }
       } else {
-        Alert.alert('Login falhou', 'Verifique suas credenciais.');
+        Alert.alert('Falha no login', 'Email ou senha inválido.');
       }
     } catch (error) {
       console.error('Ocorreu um erro durante o login:', error);
@@ -86,6 +86,31 @@ const Index: React.FC = () => {
     if (navState.url.includes(urlLogout)) {
       handleLogout();
     }
+  };
+
+  const handleShouldStartLoadWithRequest = (request: any) => {
+    const allowedUrls = [
+      'https://api.whatsapp.com/',
+      'https://web.whatsapp.com/',
+      'https://whatsapp.com/',
+      'whatsapp://',
+      'https://www.facebook.com/',
+      'https://twitter.com/',
+      'https://x.com/',
+      'https://instagram.com/'
+    ];
+
+    if (request.url.endsWith('.pdf')) {
+      Linking.openURL(request.url);
+      return false;
+    }
+
+    if (allowedUrls.some(url => request.url.startsWith(url))) {
+      Linking.openURL(request.url);
+      return false;
+    }
+
+    return true;
   };
 
   useEffect(() => {
@@ -153,11 +178,7 @@ const Index: React.FC = () => {
             </View>
 
             <TouchableOpacity style={styles.loginButton} onPress={() => handleLogin()} disabled={loading}>
-              {loading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.loginButtonText}>Entrar</Text>
-              )}
+              <Text style={styles.loginButtonText}>Entrar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -175,6 +196,7 @@ const Index: React.FC = () => {
               source={{ uri: urlWebView }}
               ref={webViewRef}
               onNavigationStateChange={handleNavigationChange}
+              onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
               javaScriptEnabled={true}
               allowsBackForwardNavigationGestures
               cacheEnabled={true}
@@ -189,6 +211,12 @@ const Index: React.FC = () => {
             />
           )}
         </>
+      )}
+
+      {loading && (
+        <View style={styles.overlay}>
+          <ActivityIndicator size="large" color="#fa581a" />
+        </View>
       )}
     </View>
   );
@@ -300,6 +328,18 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     color: '#fa581a',
     textDecorationLine: 'underline',
+  },
+  
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(300, 300, 300, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
   },
 });
 

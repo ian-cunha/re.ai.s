@@ -26,7 +26,7 @@ const Recovery: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         Alert.alert('Sucesso', 'Seus dados de cadastro foram enviadas para seu email.');
         onBack();
       } else {
-        Alert.alert('Erro', 'Verifique se o email está correto.');
+        Alert.alert('Algo deu errado', 'Verifique se o email está correto.');
       }
     } catch (error) {
       console.error('Ocorreu um erro durante a recuperação:', error);
