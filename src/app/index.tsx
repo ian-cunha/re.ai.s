@@ -97,7 +97,7 @@ const Index: React.FC = () => {
       'https://www.facebook.com/',
       'https://twitter.com/',
       'https://x.com/',
-      'https://instagram.com/'
+      'https://instagram.com/',
     ];
 
     if (request.url.endsWith('.pdf')) {
@@ -195,6 +195,9 @@ const Index: React.FC = () => {
             <WebView
               source={{ uri: urlWebView }}
               ref={webViewRef}
+              mixedContentMode={'always'}
+              originWhitelist={['*']}
+              startInLoadingState={true}
               onNavigationStateChange={handleNavigationChange}
               onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
               javaScriptEnabled={true}
@@ -329,7 +332,7 @@ const styles = StyleSheet.create({
     color: '#fa581a',
     textDecorationLine: 'underline',
   },
-  
+
   overlay: {
     position: 'absolute',
     top: 0,
