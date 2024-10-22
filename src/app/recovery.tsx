@@ -1,39 +1,48 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 
-const Recovery: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+interface RecoveryProps {
+  onBack: () => void;
+}
+
+const Recovery: React.FC<RecoveryProps> = ({ onBack }) => {
   const [email, setEmail] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleRecovery = async () => {
-    setLoading(true);
-
-    const body = new URLSearchParams({
-      'email': email
-    }).toString();
+  const handlePasswordRecovery = async () => {
+    setIsLoading(true);
+    const requestBody = createRequestBody(email);
 
     try {
-      const response = await fetch('https://app.smartimobiliario.com.br/sistema/recuperarSenha', {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: body,
-      });
-
+      const response = await sendRecoveryRequest(requestBody);
       if (response.ok) {
-        Alert.alert('Sucesso', 'Seus dados de cadastro foram enviadas para seu email.');
+        showAlert('Sucesso', 'Seus dados de cadastro foram enviados para seu email.');
         onBack();
       } else {
-        Alert.alert('Algo deu errado', 'Verifique se o email está correto.');
+        showAlert('Erro', 'Verifique se o email está correto.');
       }
     } catch (error) {
-      console.error('Ocorreu um erro durante a recuperação:', error);
-      Alert.alert('Ocorreu um erro', 'Tente novamente.');
+      console.error('Erro durante a recuperação de senha:', error);
+      showAlert('Erro', 'Ocorreu um erro. Tente novamente.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
+  };
+
+  const createRequestBody = (emailParam: string) => {
+    return new URLSearchParams({ email: emailParam }).toString();
+  };
+
+  const sendRecoveryRequest = async (body: string) => {
+    return await fetch('https://app.smartimobiliario.com.br/sistema/recuperarSenha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body,
+    });
+  };
+
+  const showAlert = (title: string, message: string) => {
+    Alert.alert(title, message);
   };
 
   return (
@@ -51,16 +60,12 @@ const Recovery: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         placeholderTextColor="#bbb"
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleRecovery} disabled={loading}>
-        {loading ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Enviar</Text>
-        )}
+      <TouchableOpacity style={styles.button} onPress={handlePasswordRecovery} disabled={isLoading}>
+        {isLoading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Enviar</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <Text style={styles.backButtonText}>Voltar para Login</Text>
+        <Text style={styles.backButtonText}>Voltar ao login</Text>
       </TouchableOpacity>
     </View>
   );
@@ -107,12 +112,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   backButton: {
-    marginTop: 10,
+    marginTop: 20,
     alignItems: 'center',
   },
   backButtonText: {
     color: '#fa581a',
-    textDecorationLine: 'underline',
   },
 });
 

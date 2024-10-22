@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, BackHandler, Platform, Alert, ActivityIndicator, Linking } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
@@ -7,83 +8,101 @@ import Recovery from './recovery';
 
 const Index: React.FC = () => {
   const [email, setEmail] = useState<string>('');
-  const [senha, setSenha] = useState<string>('');
-  const [manterLogado, setManterLogado] = useState<boolean>(false);
-  const [logado, setLogado] = useState<boolean>(false);
-  const [senhaVisivel, setSenhaVisivel] = useState<boolean>(false);
-  const [urlWebView, setUrlWebView] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [showRecovery, setShowRecovery] = useState<boolean>(false);
+  const [password, setPassword] = useState<string>('');
+  const [keepLoggedIn, setKeepLoggedIn] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
+  const [webViewUrl, setWebViewUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showRecoveryScreen, setShowRecoveryScreen] = useState<boolean>(false);
   const webViewRef = useRef<WebView | null>(null);
 
-  const urlRedirect = 'https://app.smartimobiliario.com.br/inicio/dashboard';
-  const urlLogin = 'https://app.smartimobiliario.com.br/usuario/loginSmart';
-  const urlLogout = 'https://app.smartimobiliario.com.br/usuario/logout';
+  const loginUrl = 'https://app.smartimobiliario.com.br/usuario/loginSmart';
+  const dashboardUrl = 'https://app.smartimobiliario.com.br/inicio/dashboard';
+  const logoutUrl = 'https://app.smartimobiliario.com.br/usuario/logout';
 
   useEffect(() => {
-    const verificarLogado = async () => {
-      const emailArmazenado = await AsyncStorage.getItem('email');
-      const senhaArmazenada = await AsyncStorage.getItem('senha');
-      if (emailArmazenado && senhaArmazenada) {
-        setEmail(emailArmazenado);
-        setSenha(senhaArmazenada);
-        setManterLogado(true);
-        await handleLogin(emailArmazenado, senhaArmazenada);
-      }
-    };
-    verificarLogado();
+    checkAppReinstallation();
+    checkStoredCredentials();
   }, []);
 
-  const handleLogin = async (emailParam: string = email, senhaParam: string = senha) => {
-    setLoading(true);
-    const tipoDispositivo = Platform.OS === 'ios' ? 'iphone' : 'android';
-    const body = new URLSearchParams({
-      'usuario.email': emailParam,
-      'usuario.senha': senhaParam,
-      'urlRedirect': urlRedirect,
-      'tipoDispositivo': tipoDispositivo,
-    }).toString();
+  const checkAppReinstallation = async () => {
+    const storedInstallId = await AsyncStorage.getItem('installId');
+    const currentInstallId = Constants.installationId;
+
+    if (storedInstallId && storedInstallId !== currentInstallId) {
+      await AsyncStorage.removeItem('email');
+      await AsyncStorage.removeItem('password');
+    }
+
+    if (currentInstallId) {
+      await AsyncStorage.setItem('installId', currentInstallId);
+    }
+  };
+
+  const checkStoredCredentials = async () => {
+    const storedEmail = await AsyncStorage.getItem('email');
+    const storedPassword = await AsyncStorage.getItem('password');
+    if (storedEmail && storedPassword) {
+      setEmail(storedEmail);
+      setPassword(storedPassword);
+      setKeepLoggedIn(true);
+      await handleLogin(storedEmail, storedPassword);
+    }
+  };
+
+  const handleLogin = async (emailParam: string = email, passwordParam: string = password) => {
+    setIsLoading(true);
 
     try {
-      const resposta = await fetch(urlLogin, {
+      const response = await fetch(loginUrl, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: body,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: buildRequestBody(emailParam, passwordParam),
       });
 
-      if (resposta.ok) {
-        setLogado(true);
-        setUrlWebView(urlRedirect);
-
-        if (manterLogado) {
-          await AsyncStorage.setItem('email', emailParam);
-          await AsyncStorage.setItem('senha', senhaParam);
+      if (response.ok) {
+        setIsLoggedIn(true);
+        setWebViewUrl(dashboardUrl);
+        if (keepLoggedIn) {
+          await storeCredentials(emailParam, passwordParam);
         }
       } else {
-        Alert.alert('Falha no login', 'Email ou senha inválido.');
+        showAlert('Falha no login', 'Email ou senha inválido.');
       }
     } catch (error) {
-      console.error('Ocorreu um erro durante o login:', error);
-      Alert.alert('Ocorreu um erro', 'Tente novamente.');
+      showAlert('Erro', 'Ocorreu um erro. Tente novamente.');
+      console.error('Erro no login:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
+  };
+
+  const buildRequestBody = (emailParam: string, passwordParam: string) => {
+    return new URLSearchParams({
+      'usuario.email': emailParam,
+      'usuario.senha': passwordParam,
+      'urlRedirect': dashboardUrl,
+      'tipoDispositivo': Platform.OS === 'ios' ? 'iphone' : 'android',
+    }).toString();
+  };
+
+  const storeCredentials = async (email: string, password: string) => {
+    await AsyncStorage.setItem('email', email);
+    await AsyncStorage.setItem('password', password);
   };
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('email');
-    await AsyncStorage.removeItem('senha');
-    setLogado(false);
+    await AsyncStorage.removeItem('password');
+    setIsLoggedIn(false);
     setEmail('');
-    setSenha('');
-    setUrlWebView(null);
+    setPassword('');
+    setWebViewUrl(null);
   };
 
   const handleNavigationChange = (navState: any) => {
-    if (navState.url.includes(urlLogout)) {
+    if (navState.url.includes(logoutUrl)) {
       handleLogout();
     }
   };
@@ -114,7 +133,7 @@ const Index: React.FC = () => {
   };
 
   useEffect(() => {
-    const backAction = () => {
+    const handleBackPress = () => {
       if (webViewRef.current) {
         webViewRef.current.goBack();
         return true;
@@ -122,20 +141,31 @@ const Index: React.FC = () => {
       return false;
     };
 
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
     return () => backHandler.remove();
   }, []);
 
+  const showAlert = (title: string, message: string) => {
+    Alert.alert(title, message);
+  };
+
+  const LoadingIndicator = () => {
+    return (
+      <View style={styles.overlayInside}>
+        <ActivityIndicator size="large" color="#fa581a" />
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      {!logado ? (
-        showRecovery ? (
-          <Recovery onBack={() => setShowRecovery(false)} />
+      {!isLoggedIn ? (
+        showRecoveryScreen ? (
+          <Recovery onBack={() => setShowRecoveryScreen(false)} />
         ) : (
           <View style={styles.loginContainer}>
             <Text style={styles.title}>SMART IMOBILIÁRIO</Text>
             <Text style={styles.subtitle}>Faça login na sua conta</Text>
-
             <TextInput
               style={styles.input}
               value={email}
@@ -145,78 +175,62 @@ const Index: React.FC = () => {
               autoCapitalize="none"
               placeholderTextColor="#bbb"
             />
-
             <View style={styles.passwordContainer}>
               <TextInput
                 style={styles.inputPassword}
-                value={senha}
-                onChangeText={setSenha}
+                value={password}
+                onChangeText={setPassword}
                 placeholder="Digite sua senha"
-                secureTextEntry={!senhaVisivel}
+                secureTextEntry={!passwordVisible}
                 placeholderTextColor="#bbb"
               />
-              <TouchableOpacity
-                style={styles.toggleButton}
-                onPress={() => setSenhaVisivel(!senhaVisivel)}
-              >
-                <Text style={styles.toggleText}>
-                  {senhaVisivel ? 'Ocultar' : 'Mostrar'}
-                </Text>
+              <TouchableOpacity style={styles.toggleButton} onPress={() => setPasswordVisible(!passwordVisible)}>
+                <Icon name={passwordVisible ? 'eye-off' : 'eye'} size={24} color="#fa581a" />
               </TouchableOpacity>
             </View>
-
             <View style={styles.stayLoggedInContainer}>
-              <TouchableOpacity
-                style={styles.checkboxContainer}
-                onPress={() => setManterLogado(!manterLogado)}
-              >
-                <View style={[styles.checkbox, manterLogado && styles.checked]}>
-                  {manterLogado && <Text style={styles.checkmark}>✓</Text>}
+              <TouchableOpacity style={styles.checkboxContainer} onPress={() => setKeepLoggedIn(!keepLoggedIn)}>
+                <View style={[styles.checkbox, keepLoggedIn && styles.checked]}>
+                  {keepLoggedIn && <Text style={styles.checkmark}>✓</Text>}
                 </View>
                 <Text style={styles.stayLoggedInText}>Permanecer logado</Text>
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity style={styles.loginButton} onPress={() => handleLogin()} disabled={loading}>
+            <TouchableOpacity style={styles.loginButton} onPress={() => handleLogin()} disabled={isLoading}>
               <Text style={styles.loginButtonText}>Entrar</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.forgotPasswordContainer}
-              onPress={() => setShowRecovery(true)}
-            >
+            <TouchableOpacity style={styles.forgotPasswordContainer} onPress={() => setShowRecoveryScreen(true)}>
               <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
           </View>
         )
       ) : (
-        <>
-          {urlWebView && (
-            <WebView
-              source={{ uri: urlWebView }}
-              ref={webViewRef}
-              mixedContentMode={'always'}
-              originWhitelist={['*']}
-              startInLoadingState={true}
-              onNavigationStateChange={handleNavigationChange}
-              onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-              javaScriptEnabled={true}
-              allowsBackForwardNavigationGestures
-              cacheEnabled={true}
-              sharedCookiesEnabled={true}
-              pullToRefreshEnabled={true}
-              showsHorizontalScrollIndicator={false}
-              showsVerticalScrollIndicator={false}
-              setSupportMultipleWindows={false}
-              allowFileAccess={true}
-              allowFileAccessFromFileURLs={true}
-              allowUniversalAccessFromFileURLs={true}
-            />
-          )}
-        </>
+        webViewUrl && (
+          <WebView
+            source={{ uri: webViewUrl }}
+            ref={webViewRef}
+            mixedContentMode={'always'}
+            originWhitelist={['*']}
+            startInLoadingState={true}
+            renderLoading={LoadingIndicator}
+            onNavigationStateChange={handleNavigationChange}
+            onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+            javaScriptEnabled={true}
+            allowsBackForwardNavigationGestures
+            cacheEnabled={true}
+            sharedCookiesEnabled={true}
+            pullToRefreshEnabled={true}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            setSupportMultipleWindows={false}
+            allowFileAccess={true}
+            allowFileAccessFromFileURLs={true}
+            allowUniversalAccessFromFileURLs={true}
+          />
+        )
       )}
 
-      {loading && (
+      {isLoading && (
         <View style={styles.overlay}>
           <ActivityIndicator size="large" color="#fa581a" />
         </View>
@@ -260,33 +274,32 @@ const styles = StyleSheet.create({
   inputPassword: {
     borderColor: '#ddd',
     padding: 10,
-    width: '80%',
     borderRadius: 8,
     fontSize: 16,
     backgroundColor: '#fafafa',
+    width: '90%',
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    paddingHorizontal: 10,
     backgroundColor: '#fafafa',
   },
   toggleButton: {
-    padding: 10,
+    marginRight: 10,
   },
   toggleText: {
     color: '#fa581a',
-    fontWeight: 'bold',
+    fontSize: 16,
   },
   stayLoggedInContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 20,
     marginTop: 15,
+    alignItems: 'center',
+    flexDirection: 'row',
   },
   checkboxContainer: {
     flexDirection: 'row',
@@ -297,9 +310,9 @@ const styles = StyleSheet.create({
     height: 20,
     borderWidth: 1,
     borderColor: '#ccc',
+    marginRight: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
     borderRadius: 4,
   },
   checked: {
@@ -307,11 +320,10 @@ const styles = StyleSheet.create({
   },
   checkmark: {
     color: '#fff',
-    fontSize: 16,
   },
   stayLoggedInText: {
     fontSize: 16,
-    color: '#333',
+    color: '#666',
   },
   loginButton: {
     backgroundColor: '#fa581a',
@@ -321,28 +333,31 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
   },
   forgotPasswordContainer: {
-    marginTop: 10,
+    marginTop: 20,
     alignItems: 'center',
   },
   forgotPasswordText: {
     color: '#fa581a',
-    textDecorationLine: 'underline',
   },
-
+  loadingText: {
+    color: '#fa581a',
+    marginTop: 10,
+    fontSize: 16,
+  },
   overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(300, 300, 300, 0.8)',
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000,
+  },
+  overlayInside: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
