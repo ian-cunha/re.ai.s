@@ -17,9 +17,9 @@ const Index: React.FC = () => {
   const [showRecoveryScreen, setShowRecoveryScreen] = useState<boolean>(false);
   const webViewRef = useRef<WebView | null>(null);
 
-  const loginUrl = 'https://app.smartimobiliario.com.br/usuario/loginSmart';
-  const dashboardUrl = 'https://app.smartimobiliario.com.br/inicio/dashboard';
-  const logoutUrl = 'https://app.smartimobiliario.com.br/usuario/logout';
+  const loginUrl = 'https://app.reaisystems.com.br/usuario/loginSmart';
+  const dashboardUrl = 'https://app.reaisystems.com.br/inicio/dashboard';
+  const logoutUrl = 'https://app.reaisystems.com.br/usuario/logout';
 
   useEffect(() => {
     checkAppReinstallation();

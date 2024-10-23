@@ -34,7 +34,7 @@ const Recovery: React.FC<RecoveryProps> = ({ onBack }) => {
   };
 
   const sendRecoveryRequest = async (body: string) => {
-    return await fetch('https://app.smartimobiliario.com.br/sistema/recuperarSenha', {
+    return await fetch('https://app.reaisystems.com.br/sistema/recuperarSenha', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body,
