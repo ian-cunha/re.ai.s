@@ -14,9 +14,18 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "br.com.youdigital.smartimobiliario"
+      "bundleIdentifier": "br.com.youdigital.smartimobiliario",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
     },
     "android": {
+      "permissions": ["INTERNET"],
+      "config": {
+        "androidx": true
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
