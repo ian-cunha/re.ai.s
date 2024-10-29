@@ -102,7 +102,20 @@ const Index: React.FC = () => {
   };
 
   const handleNavigationChange = (navState: any) => {
-    if (navState.url.includes(logoutUrl)) {
+    let { url } = navState;
+    console.log('Navegando para:', url);
+
+    // Forçar HTTPS
+    if (url.startsWith('http://')) {
+      const httpsUrl = url.replace('http://', 'https://');
+      console.log('Redirecionando para:', httpsUrl);
+
+      setWebViewUrl(httpsUrl);
+      return;
+    }
+
+    // Verifica se a URL é de logout e apaga o login
+    if (url.includes(logoutUrl)) {
       handleLogout();
     }
   };
@@ -217,7 +230,8 @@ const Index: React.FC = () => {
             onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
             javaScriptEnabled={true}
             allowsBackForwardNavigationGestures
-            cacheEnabled={true}
+            // Cache Desativado
+            cacheEnabled={false}
             sharedCookiesEnabled={true}
             pullToRefreshEnabled={true}
             showsHorizontalScrollIndicator={false}
