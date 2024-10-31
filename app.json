@@ -19,16 +19,16 @@
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }
-      }
+      },
+      "buildNumber": "2"
     },
     "android": {
-      "usesCleartextTraffic": true,
+      "buildProperties": {
+        "usesCleartextTraffic": true
+      },
       "permissions": [
         "INTERNET"
       ],
-      "config": {
-        "androidx": true
-      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -43,7 +43,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true
