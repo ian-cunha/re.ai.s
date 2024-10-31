@@ -22,9 +22,12 @@
       }
     },
     "android": {
-      "permissions": ["INTERNET"],
+      "permissions": [
+        "INTERNET"
+      ],
       "config": {
-        "androidx": true
+        "androidx": true,
+        "usesCleartextTraffic": true
       },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -53,6 +56,6 @@
         "projectId": "4fc086fd-6fa9-4ff0-9f0b-ea9adf5fed4e"
       }
     },
-    "owner": "iancunha"
+    "owner": "realestateaiplanner"
   }
 }

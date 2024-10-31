@@ -102,20 +102,7 @@ const Index: React.FC = () => {
   };
 
   const handleNavigationChange = (navState: any) => {
-    let { url } = navState;
-    console.log('Navegando para:', url);
-
-    // Forçar HTTPS
-    if (url.startsWith('http://')) {
-      const httpsUrl = url.replace('http://', 'https://');
-      console.log('Redirecionando para:', httpsUrl);
-
-      setWebViewUrl(httpsUrl);
-      return;
-    }
-
-    // Verifica se a URL é de logout e apaga o login
-    if (url.includes(logoutUrl)) {
+    if (navState.url.includes(logoutUrl)) {
       handleLogout();
     }
   };
@@ -230,8 +217,7 @@ const Index: React.FC = () => {
             onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
             javaScriptEnabled={true}
             allowsBackForwardNavigationGestures
-            // Cache Desativado
-            cacheEnabled={false}
+            cacheEnabled={true}
             sharedCookiesEnabled={true}
             pullToRefreshEnabled={true}
             showsHorizontalScrollIndicator={false}
@@ -240,6 +226,16 @@ const Index: React.FC = () => {
             allowFileAccess={true}
             allowFileAccessFromFileURLs={true}
             allowUniversalAccessFromFileURLs={true}
+            injectedJavaScript={`
+              (function() {
+                const links = document.querySelectorAll('.nav__link');
+                links.forEach(link => {
+                  if (link.href && !link.href.startsWith('https:')) {
+                    link.href = 'https:' + link.href;
+                  }
+                });
+              })();
+            `}
           />
         )
       )}
