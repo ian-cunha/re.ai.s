@@ -226,16 +226,6 @@ const Index: React.FC = () => {
             allowFileAccess={true}
             allowFileAccessFromFileURLs={true}
             allowUniversalAccessFromFileURLs={true}
-            injectedJavaScript={`
-              (function() {
-                const links = document.querySelectorAll('.nav__link');
-                links.forEach(link => {
-                  if (link.href && !link.href.startsWith('https:')) {
-                    link.href = 'https:' + link.href;
-                  }
-                });
-              })();
-            `}
           />
         )
       )}
