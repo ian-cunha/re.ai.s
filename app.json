@@ -22,12 +22,12 @@
       }
     },
     "android": {
+      "usesCleartextTraffic": true,
       "permissions": [
         "INTERNET"
       ],
       "config": {
-        "androidx": true,
-        "usesCleartextTraffic": true
+        "androidx": true
       },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
