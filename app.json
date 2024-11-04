@@ -30,7 +30,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "versionCode": 5,
+      "versionCode": 200,
       "package": "br.com.youdigital.smartimobiliario"
     },
     "web": {
