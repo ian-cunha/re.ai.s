@@ -23,9 +23,6 @@
       "buildNumber": "2"
     },
     "android": {
-      "buildProperties": {
-        "usesCleartextTraffic": true
-      },
       "permissions": [
         "INTERNET"
       ],
@@ -42,9 +39,16 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
-      "expo-font",
-      "expo-build-properties"
+      ["expo-router"],
+      ["expo-font"],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
