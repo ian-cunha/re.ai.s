@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, BackHandler, Platform, Alert, ActivityIndicator, Linking } from 'react-native';
+import { Image, View, Text, TextInput, TouchableOpacity, StyleSheet, BackHandler, Platform, Alert, ActivityIndicator, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
 import Recovery from './recovery';
+import Logo from '../../assets/images/logo.png'
 
 const Index: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -18,7 +19,7 @@ const Index: React.FC = () => {
   const webViewRef = useRef<WebView | null>(null);
 
   const loginUrl = 'https://app.reaisystems.com.br/usuario/loginSmart';
-  const dashboardUrl = 'https://app.reaisystems.com.br/inicio/dashboard';
+  const dashboardUrl = 'https://app.reaisystems.com.br/inicio/dashboard?origem=login';
   const logoutUrl = 'https://app.reaisystems.com.br/usuario/logout';
 
   useEffect(() => {
@@ -164,7 +165,7 @@ const Index: React.FC = () => {
           <Recovery onBack={() => setShowRecoveryScreen(false)} />
         ) : (
           <View style={styles.loginContainer}>
-            <Text style={styles.title}>SMART IMOBILIÁRIO</Text>
+            <Image source={Logo} style={styles.logo} />
             <Text style={styles.subtitle}>Faça login na sua conta</Text>
             <TextInput
               style={styles.input}
@@ -249,17 +250,17 @@ const styles = StyleSheet.create({
   loginContainer: {
     padding: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fa581a',
-    textAlign: 'center',
-    marginBottom: 10,
+  logo: {
+    width: 200,
+    height: 100,
+    resizeMode: 'contain',
+    alignSelf: 'center',
   },
   subtitle: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
+    letterSpacing: 1,
     marginBottom: 20,
   },
   input: {
