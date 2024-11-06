@@ -1,10 +1,10 @@
-![Logo do projeto](https://www.smartimobiliario.com.br/assets/logoSmart.5933318d.svg)
+![Logo do projeto](https://play-lh.googleusercontent.com/36IHwX8Pe_qLHG_wbGneKvAZuUwJ70Tcn_h3HdfPulh6h5X_4XKjZ9NGzV9oMyjJ0Xk=w240-h480-rw)
 
-# Smart Imobiliário
+# RE.AI.s (Smart Imobiliário)
 Criado para ajudar você a priorizar negócios, acompanhar seu desempenho e não perder oportunidades.
 
 ## 🔥 Introdução
-Aplicativo do SMART Imobiliário.
+Aplicativo do RE.AI.s (Smart Imobiliário).
 
 ## 📦 Tecnologias usadas:
 
