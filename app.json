@@ -2,7 +2,7 @@
   "expo": {
     "name": "RE.AI.s",
     "slug": "smart-imobiliario",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "br.com.youdigital.smartimobiliario",
@@ -20,7 +20,7 @@
           "NSAllowsArbitraryLoads": true
         }
       },
-      "buildNumber": "2.0.1"
+      "buildNumber": "2.0.2"
     },
     "android": {
       "permissions": [
@@ -30,7 +30,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "versionCode": 201,
+      "versionCode": 202,
       "package": "br.com.youdigital.smartimobiliario"
     },
     "web": {

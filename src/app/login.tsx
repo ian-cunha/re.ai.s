@@ -246,6 +246,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: '#f0f4f7',
         marginTop: Constants.statusBarHeight,
+        marginBottom: Platform.OS === 'ios' ? 20 : 'auto',
     },
     loginContainer: {
         padding: 20,
