@@ -2,7 +2,9 @@
   "expo": {
     "name": "RE.AI.s",
     "slug": "smart-imobiliario",
-    "version": "2.0.2",
+    "version": "2.0.3",
+    "jsEngine": "hermes",
+    "newArchEnabled": true,
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "br.com.youdigital.smartimobiliario",
@@ -12,6 +14,10 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "androidStatusBar": {
+      "backgroundColor": "#F46001",
+      "barStyle": "light-content"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "br.com.youdigital.smartimobiliario",
@@ -20,7 +26,7 @@
           "NSAllowsArbitraryLoads": true
         }
       },
-      "buildNumber": "2.0.2"
+      "buildNumber": "2.0.3"
     },
     "android": {
       "permissions": [
@@ -30,7 +36,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "versionCode": 202,
+      "versionCode": 203,
       "package": "br.com.youdigital.smartimobiliario"
     },
     "web": {
@@ -39,8 +45,12 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      ["expo-router"],
-      ["expo-font"],
+      [
+        "expo-router"
+      ],
+      [
+        "expo-font"
+      ],
       [
         "expo-build-properties",
         {

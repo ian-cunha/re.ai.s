@@ -6,6 +6,7 @@ import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
 import Recovery from './recovery';
 import Logo from '../../assets/images/logo.png'
+import NetInfo from '@react-native-community/netinfo';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState<string>('');
@@ -17,6 +18,7 @@ const Login: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [showRecoveryScreen, setShowRecoveryScreen] = useState<boolean>(false);
     const webViewRef = useRef<WebView | null>(null);
+    const [isConnected, setIsConnected] = useState<boolean>(true);
 
     const loginUrl = 'https://app.reaisystems.com.br/usuario/loginSmart';
     const dashboardUrl = 'https://app.reaisystems.com.br/inicio/dashboard?origem=login';
@@ -25,7 +27,18 @@ const Login: React.FC = () => {
     useEffect(() => {
         checkAppReinstallation();
         checkStoredCredentials();
+        monitorConnection();
     }, []);
+
+    const monitorConnection = () => {
+        const unsubscribe = NetInfo.addEventListener((state) => {
+            setIsConnected(state.isConnected || false);
+            if (state.isConnected && webViewRef.current) {
+                webViewRef.current.reload();
+            }
+        });
+        return () => unsubscribe();
+    };
 
     const checkAppReinstallation = async () => {
         const storedInstallId = await AsyncStorage.getItem('installId');
@@ -158,9 +171,20 @@ const Login: React.FC = () => {
         );
     };
 
+    const renderDisconnected = () => (
+        <View style={styles.disconnectedContainer}>
+            <Text style={styles.disconnectedText}>Você está offline</Text>
+            <TouchableOpacity onPress={() => NetInfo.fetch().then((state) => setIsConnected(state.isConnected || false))}>
+                <Text style={styles.tryAgainText}>Tentar novamente</Text>
+            </TouchableOpacity>
+        </View>
+    );
+
     return (
         <View style={styles.container}>
-            {!isLoggedIn ? (
+            {!isConnected ? (
+                renderDisconnected()
+            ) : !isLoggedIn ? (
                 showRecoveryScreen ? (
                     <Recovery onBack={() => setShowRecoveryScreen(false)} />
                 ) : (
@@ -241,11 +265,30 @@ const Login: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+    disconnectedContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f0f4f7',
+    },
+    disconnectedText: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#fa581a',
+        marginBottom: 10,
+    },
+    tryAgainText: {
+        backgroundColor: '#fa581a',
+        color: 'white',
+        padding: 15,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
     container: {
         flex: 1,
         justifyContent: 'center',
         backgroundColor: '#f0f4f7',
-        marginTop: Constants.statusBarHeight,
+        marginTop: Platform.OS === 'ios' ? Constants.statusBarHeight : 0,
         marginBottom: Platform.OS === 'ios' ? 20 : 'auto',
     },
     loginContainer: {
