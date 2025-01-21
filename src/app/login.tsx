@@ -7,6 +7,7 @@ import Constants from 'expo-constants';
 import Recovery from './recovery';
 import Logo from '../../assets/images/logo.png'
 import NetInfo from '@react-native-community/netinfo';
+import * as LocalAuthentication from 'expo-local-authentication';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState<string>('');
@@ -40,6 +41,65 @@ const Login: React.FC = () => {
         return () => unsubscribe();
     };
 
+    const [biometricType, setBiometricType] = useState<string | null>(null);
+
+    useEffect(() => {
+        detectBiometricType();
+    }, []);
+
+    const detectBiometricType = async () => {
+        try {
+            const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
+            if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
+                setBiometricType('Biometria/PIN');
+            } else if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
+                setBiometricType('Face ID/PIN');
+            } else {
+                setBiometricType(null);
+            }
+        } catch (error) {
+            console.error('Erro ao detectar tipo de biometria:', error);
+        }
+    };
+
+    const checkBiometricAuth = async (): Promise<boolean> => {
+        try {
+            // Verifica se o dispositivo suporta autenticação biométrica
+            const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
+            if (!isBiometricAvailable) {
+                Alert.alert('Erro', 'Seu dispositivo não suporta autenticação biométrica.');
+                return false;
+            }
+
+            // Verifica se a biometria está configurada
+            const savedBiometrics = await LocalAuthentication.isEnrolledAsync();
+            if (!savedBiometrics) {
+
+                // Tenta autenticar com fallback para PIN
+                const result = await LocalAuthentication.authenticateAsync({
+                    promptMessage: 'Autentique-se para continuar',
+                    fallbackLabel: 'Use seu PIN',
+                    disableDeviceFallback: false, // Importante: Ativa o fallback para PIN
+                });
+
+                return result.success;
+            }
+
+            // Solicita autenticação biométrica
+            const result = await LocalAuthentication.authenticateAsync({
+                promptMessage: 'Autentique-se para continuar',
+                fallbackLabel: 'Use seu PIN',
+                disableDeviceFallback: false, // Permite fallback para PIN
+            });
+
+            return result.success;
+        } catch (error) {
+            console.error('Erro na autenticação biométrica:', error);
+            Alert.alert('Erro', 'Ocorreu um erro durante a autenticação.');
+            return false;
+        }
+    };
+
     const checkAppReinstallation = async () => {
         const storedInstallId = await AsyncStorage.getItem('installId');
         const currentInstallId = Constants.installationId;
@@ -57,11 +117,23 @@ const Login: React.FC = () => {
     const checkStoredCredentials = async () => {
         const storedEmail = await AsyncStorage.getItem('email');
         const storedPassword = await AsyncStorage.getItem('password');
+        const isBiometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+
         if (storedEmail && storedPassword) {
             setEmail(storedEmail);
             setPassword(storedPassword);
             setKeepLoggedIn(true);
-            await handleLogin(storedEmail, storedPassword);
+
+            if (isBiometricEnabled === 'true') {
+                const success = await checkBiometricAuth();
+                if (success) {
+                    await handleLogin(storedEmail, storedPassword);
+                } else {
+                    Alert.alert('Autenticação Requerida', 'A biometria é necessária para continuar.');
+                }
+            } else {
+                await handleLogin(storedEmail, storedPassword);
+            }
         }
     };
 
@@ -214,15 +286,42 @@ const Login: React.FC = () => {
                             </TouchableOpacity>
                         </View>
                         <View style={styles.stayLoggedInContainer}>
-                            <TouchableOpacity style={styles.checkboxContainer} onPress={() => setKeepLoggedIn(!keepLoggedIn)}>
+                            <TouchableOpacity
+                                style={styles.checkboxContainer}
+                                onPress={async () => {
+                                    setKeepLoggedIn(!keepLoggedIn);
+                                    if (!keepLoggedIn) {
+                                        await AsyncStorage.setItem('biometricEnabled', 'true');
+                                    } else {
+                                        await AsyncStorage.removeItem('biometricEnabled');
+                                    }
+                                }}
+                            >
                                 <View style={[styles.checkbox, keepLoggedIn && styles.checked]}>
                                     {keepLoggedIn && <Text style={styles.checkmark}>✓</Text>}
                                 </View>
                                 <Text style={styles.stayLoggedInText}>Permanecer logado</Text>
                             </TouchableOpacity>
                         </View>
-                        <TouchableOpacity style={styles.loginButton} onPress={() => handleLogin()} disabled={isLoading}>
-                            <Text style={styles.loginButtonText}>Entrar</Text>
+                        <TouchableOpacity
+                            style={styles.loginButton}
+                            onPress={async () => {
+                                if (keepLoggedIn) {
+                                    const success = await checkBiometricAuth();
+                                    if (success) {
+                                        await handleLogin();
+                                    } else {
+                                        Alert.alert('Autenticação Requerida', 'A biometria é necessária para continuar.');
+                                    }
+                                } else {
+                                    await handleLogin();
+                                }
+                            }}
+                            disabled={isLoading}
+                        >
+                            <Text style={styles.loginButtonText}>
+                                {keepLoggedIn ? `Login com ${biometricType || 'Biometria'}` : 'Entrar'}
+                            </Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.forgotPasswordContainer} onPress={() => setShowRecoveryScreen(true)}>
                             <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
@@ -265,6 +364,20 @@ const Login: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+    biometricButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fa581a',
+        padding: 15,
+        borderRadius: 8,
+        marginTop: 15,
+    },
+    biometricButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        marginLeft: 10,
+    },
     disconnectedContainer: {
         flex: 1,
         justifyContent: 'center',

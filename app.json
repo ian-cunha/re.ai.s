@@ -2,7 +2,7 @@
   "expo": {
     "name": "RE.AI.s",
     "slug": "smart-imobiliario",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "jsEngine": "hermes",
     "newArchEnabled": true,
     "orientation": "portrait",
@@ -22,11 +22,12 @@
       "supportsTablet": true,
       "bundleIdentifier": "br.com.youdigital.smartimobiliario",
       "infoPlist": {
+        "NSFaceIDUsageDescription": "Usamos o Face ID para autenticar você no aplicativo.",
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }
       },
-      "buildNumber": "2.0.3"
+      "buildNumber": "2.0.4"
     },
     "android": {
       "permissions": [
@@ -36,7 +37,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "versionCode": 203,
+      "versionCode": 204,
       "package": "br.com.youdigital.smartimobiliario"
     },
     "web": {
