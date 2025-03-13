@@ -8,6 +8,7 @@ import Recovery from './recovery';
 import Logo from '../../assets/images/logo.png'
 import NetInfo from '@react-native-community/netinfo';
 import * as LocalAuthentication from 'expo-local-authentication';
+import * as Notifications from 'expo-notifications';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState<string>('');
@@ -20,6 +21,7 @@ const Login: React.FC = () => {
     const [showRecoveryScreen, setShowRecoveryScreen] = useState<boolean>(false);
     const webViewRef = useRef<WebView | null>(null);
     const [isConnected, setIsConnected] = useState<boolean>(true);
+    const [tokenNotificacao, setTokenNotificacao] = useState<string | null>(null);
 
     const loginUrl = 'https://app.reaisystems.com.br/usuario/loginSmart';
     const dashboardUrl = 'https://app.reaisystems.com.br/inicio/dashboard?origem=login';
@@ -29,7 +31,49 @@ const Login: React.FC = () => {
         checkAppReinstallation();
         checkStoredCredentials();
         monitorConnection();
+        detectBiometricType();
+
+        registerForPushNotificationsAsync();
+        Notifications.setNotificationHandler({
+            handleNotification: async () => ({
+                shouldShowAlert: true,
+                shouldPlaySound: true,
+                shouldSetBadge: false,
+            }),
+        });
+
+        const subscription = Notifications.addNotificationReceivedListener(notification => {
+            console.log('Notificação recebida:', notification);
+        });
+
+        return () => subscription.remove();
     }, []);
+
+    async function registerForPushNotificationsAsync() {
+        try {
+            if (Platform.OS === 'android') {
+                await Notifications.setNotificationChannelAsync('default', {
+                    name: 'default',
+                    importance: Notifications.AndroidImportance.MAX,
+                    vibrationPattern: [0, 250, 250, 250],
+                    lightColor: '#FF231F7C',
+                });
+            }
+
+            const { status } = await Notifications.requestPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permissão Negada', 'Você precisa permitir notificações para receber atualizações.');
+                return;
+            }
+
+            const token = (await Notifications.getExpoPushTokenAsync()).data;
+            setTokenNotificacao(token);
+            console.log('Token de notificação:', token);
+        } catch (error) {
+            console.error('Erro ao obter token de notificação:', error);
+            Alert.alert('Erro', 'Não foi possível obter o token de notificação.');
+        }
+    }
 
     const monitorConnection = () => {
         const unsubscribe = NetInfo.addEventListener((state) => {
@@ -42,10 +86,6 @@ const Login: React.FC = () => {
     };
 
     const [biometricType, setBiometricType] = useState<string | null>(null);
-
-    useEffect(() => {
-        detectBiometricType();
-    }, []);
 
     const detectBiometricType = async () => {
         try {
@@ -64,32 +104,28 @@ const Login: React.FC = () => {
 
     const checkBiometricAuth = async (): Promise<boolean> => {
         try {
-            // Verifica se o dispositivo suporta autenticação biométrica
             const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
             if (!isBiometricAvailable) {
                 Alert.alert('Erro', 'Seu dispositivo não suporta autenticação biométrica.');
                 return false;
             }
 
-            // Verifica se a biometria está configurada
             const savedBiometrics = await LocalAuthentication.isEnrolledAsync();
             if (!savedBiometrics) {
 
-                // Tenta autenticar com fallback para PIN
                 const result = await LocalAuthentication.authenticateAsync({
                     promptMessage: 'Autentique-se para continuar',
                     fallbackLabel: 'Use seu PIN',
-                    disableDeviceFallback: false, // Importante: Ativa o fallback para PIN
+                    disableDeviceFallback: false,
                 });
 
                 return result.success;
             }
 
-            // Solicita autenticação biométrica
             const result = await LocalAuthentication.authenticateAsync({
                 promptMessage: 'Autentique-se para continuar',
                 fallbackLabel: 'Use seu PIN',
-                disableDeviceFallback: false, // Permite fallback para PIN
+                disableDeviceFallback: false,
             });
 
             return result.success;
@@ -169,7 +205,8 @@ const Login: React.FC = () => {
             'usuario.email': emailParam,
             'usuario.senha': passwordParam,
             'urlRedirect': dashboardUrl,
-            'tipoDispositivo': Platform.OS === 'ios' ? 'iphone' : 'android',
+            'tipoDispositivo': (Platform.OS === 'ios' ? 1 : 2).toString(),
+            'tokenNotificacao': tokenNotificacao || '',
         }).toString();
     };
 
@@ -332,6 +369,8 @@ const Login: React.FC = () => {
                 webViewUrl && (
                     <WebView
                         source={{ uri: webViewUrl }}
+                        allowsInlineMediaPlayback={true}
+                        mediaPlaybackRequiresUserAction={false}
                         ref={webViewRef}
                         mixedContentMode={'always'}
                         originWhitelist={['*']}
@@ -350,6 +389,7 @@ const Login: React.FC = () => {
                         allowFileAccess={true}
                         allowFileAccessFromFileURLs={true}
                         allowUniversalAccessFromFileURLs={true}
+                        allowsAirPlayForMediaPlayback={true}
                     />
                 )
             )}

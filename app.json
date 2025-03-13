@@ -2,7 +2,7 @@
   "expo": {
     "name": "RE.AI.s",
     "slug": "smart-imobiliario",
-    "version": "2.0.4",
+    "version": "2.0.8",
     "jsEngine": "hermes",
     "newArchEnabled": true,
     "orientation": "portrait",
@@ -22,12 +22,19 @@
       "supportsTablet": true,
       "bundleIdentifier": "br.com.youdigital.smartimobiliario",
       "infoPlist": {
-        "NSFaceIDUsageDescription": "Usamos o Face ID para autenticar você no aplicativo.",
+        "CFBundleDevelopmentRegion": "pt-BR",
+        "CFBundleLocalizations": [
+          "en",
+          "pt-BR"
+        ],
+        "NSCameraUsageDescription": "O RE.AI.s utiliza a câmera para capturar fotos que podem ser usadas como foto de perfil, imagem de empreendimento ou imóvel. Por exemplo, ao tirar uma foto de um imóvel, ela será exibida no sistema para facilitar a sua visualização e por outros usuários.",
+        "NSPhotoLibraryUsageDescription": "O RE.AI.s acessa sua biblioteca de fotos para permitir que você selecione imagens para usar como foto de perfil, imagem de empreendimento ou imóvel. Por exemplo, ao escolher uma foto de um imóvel, ela será exibida no sistema para facilitar a sua visualização e por outros usuários.",
+        "NSFaceIDUsageDescription": "Usamos o Face ID para autenticar você no RE.AI.s.",
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }
       },
-      "buildNumber": "2.0.4"
+      "buildNumber": "2.0.8"
     },
     "android": {
       "permissions": [
@@ -37,7 +44,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "versionCode": 204,
+      "versionCode": 208,
       "package": "br.com.youdigital.smartimobiliario"
     },
     "web": {
