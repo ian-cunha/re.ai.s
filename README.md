@@ -11,7 +11,6 @@ Aplicativo do RE.AI.s (Smart Imobiliário).
 Ferramentas:
 * ![TypeScript](https://img.shields.io/badge/typescript-%23323330.svg?style=for-the-badge&logo=typescript&logoColor=%23F7DF1E)
 * ![ReactNative](https://img.shields.io/badge/reactnative-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
-* ![Expo](https://img.shields.io/badge/expo-%23646CFF.svg?style=for-the-badge&logo=expo&logoColor=white)
 
 ## 📄 Licença
 
